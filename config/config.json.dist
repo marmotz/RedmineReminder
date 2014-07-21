@@ -1,0 +1,4 @@
+{
+    "redmineBaseUri" : "http://domain.com",
+    "redmineApiKey"  : "apikey"
+}
