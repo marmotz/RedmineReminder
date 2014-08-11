@@ -87,6 +87,13 @@ class Bot {
         if ($issues) {
             $text = array();
 
+            $text[] = sprintf(
+                'Bonjour %s,',
+                $user['firstname']
+            );
+
+            $text[] = '';
+
             if (count($issues) === 1) {
                 $text[] = 'Vous avez 1 ticket Redmine affecté et ouvert:';
             } else {
@@ -117,7 +124,7 @@ class Bot {
 
             $text = implode(PHP_EOL, $text);
 
-            mail('renaud@atipik.fr', 'Reminder Redmine', $text);
+            mail($user['mail'], 'Reminder Redmine', $text);
 
             $this->writeln('Send 1 mail.');
         } else {
