@@ -2,7 +2,7 @@
     "name": "atipik/redmine-reminder",
     "description": "Redmine Reminder",
     "require": {
-        "indatus/trucker": "dev-master"
+        "guzzlehttp/guzzle": "~4.0"
     },
     "authors": [
         {
@@ -11,8 +11,8 @@
         }
     ],
     "autoload": {
-        "psr-0": {
-            "": "src"
+        "psr-4": {
+            "Atipik\\RedmineReminder\\": "src"
         }
     }
 }
