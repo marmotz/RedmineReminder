@@ -5,6 +5,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Atipik\RedmineReminder\Bot;
 
-$bot = new Bot(__DIR__ . '/../config/config.json');
+$bot = new Bot($argv, __DIR__ . '/../config/config.json');
 
 $bot->run();

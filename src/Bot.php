@@ -7,7 +7,7 @@ use Atipik\RedmineReminder\Redmine\Request;
 class Bot {
     protected $config;
 
-    public function __construct($configFile)
+    public function __construct($argv, $configFile)
     {
         if (!file_exists($configFile)) {
             throw new \Exception('Config file "' . $configFile . '" does not exist.');
@@ -27,6 +27,12 @@ class Bot {
             $this->config['redmineBaseUri'],
             $this->config['redmineApiKey']
         );
+
+        if (in_array('--no-mail', $argv)) {
+            $this->config['sendMail'] = false;
+        } else {
+            $this->config['sendMail'] = true;
+        }
     }
 
     public function run()
@@ -73,13 +79,28 @@ class Bot {
 
     protected function getIssuesToBeNotified(array $user)
     {
-        return $this->request->all(
-            'issues',
-            array(
-                'assigned_to_id' => $user['id'],
-                'status_id'      => 7,              // en attente
-            )
+        $status = array(
+            7,  // En attente
+            11, // À tester en preprod
+            12, // À livrer en prod
         );
+
+        $issuesToBeNotified = array();
+
+        foreach ($status as $statusId) {
+            $issuesToBeNotified = array_merge(
+                $issuesToBeNotified,
+                $this->request->all(
+                    'issues',
+                    array(
+                        'assigned_to_id' => $user['id'],
+                        'status_id'      => $statusId,
+                    )
+                )
+            );
+        }
+
+        return $issuesToBeNotified;
     }
 
     protected function sendMail(array $user, array $issues)
@@ -108,7 +129,7 @@ class Bot {
 
             foreach ($issues as $issue) {
                 $text[] = sprintf(
-                    '* [#%0' . $idLength . 'd] %s - %s',
+                    '* [#%0' . $idLength . 'd] %s (%s) %s',
                     $issue['id'],
                     str_pad(
                         sprintf(
@@ -118,17 +139,25 @@ class Bot {
                         ),
                         $padLength
                     ),
+                    $issue['status']['name'],
                     $issue['subject']
                 );
             }
 
             $text = implode(PHP_EOL, $text);
 
-            mail($user['mail'], 'Reminder Redmine', $text);
+            if ($this->config['sendMail']) {
+                mail($user['mail'], 'Reminder Redmine', $text);
+            }
 
-            $this->writeln('Send 1 mail.');
+            $this->writeln('Mail sent to ' . $user['mail'] . ' :');
+            $this->writeln('"' . $text . '"');
+
+            if (!$this->config['sendMail']) {
+                $this->writeln('DEBUG: MAIL NOT REALY SENT !!!');
+            }
         } else {
-            $this->writeln('Send 0 mail.');
+            $this->writeln('No mail sent');
         }
     }
 }
