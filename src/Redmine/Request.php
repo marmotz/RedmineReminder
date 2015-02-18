@@ -10,8 +10,6 @@ class Request {
     {
         $this->baseUri = rtrim($baseUri, '/');
         $this->apiKey  = $apiKey;
-
-        $this->client = new \GuzzleHttp\Client();
     }
 
     public function all($modelName, array $conditions = array())
@@ -30,18 +28,18 @@ class Request {
 
         $conditions['limit'] = 9999;
 
-        $response = $this->client->$method(
-            $this->baseUri . '/' . ltrim($uri, '/'),
-            array(
-                'auth'    => array($this->apiKey, $this->apiKey),
-                'query'   => $conditions,
-                'headers' => array(
-                    'Content-Type' => 'application/json'
-                ),
-            )
+        $url = sprintf(
+            'http://%s:%s@%s/%s?%s',
+            $this->apiKey,
+            $this->apiKey,
+            str_replace('http://', '', $this->baseUri),
+            ltrim($uri, '/'),
+            http_build_query($conditions)
         );
 
-        $data = $response->json();
+        $response = file_get_contents($url);
+
+        $data = json_decode($response, true);
 
         return array_shift($data);
     }
